@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+@layer base {
+  html {
+    font-optical-sizing: auto;
+    font-weight: 500;
+  }
+
+  body {
+    font-size: 0.94rem;
+  }
+
+  :where(h1, h2, h3, h4, h5, h6) {
+    line-height: 1.2;
+  }
+}
+
+@theme {
+  --font-sans: "League Spartan", sans-serif;
+
+  --color-primary: hsl(180, 29%, 50%);
+  --color-primary-dark: hsl(180, 14%, 20%);
+  --color-primary-hover: hsl(180, 29%, 45%);
+  --color-secondary: hsl(180, 8%, 52%);
+  --color-background: hsl(180, 52%, 96%);
+  --color-surface: hsl(0, 0%, 100%);
+  --color-light: hsl(180, 8%, 85%);
+}
