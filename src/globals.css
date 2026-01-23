@@ -24,9 +24,19 @@
 
   --color-primary: hsl(180, 29%, 50%);
   --color-primary-dark: hsl(180, 14%, 20%);
-  --color-primary-hover: hsl(180, 29%, 45%);
   --color-secondary: hsl(180, 8%, 52%);
   --color-background: hsl(180, 52%, 96%);
   --color-surface: hsl(0, 0%, 100%);
   --color-light: hsl(180, 8%, 85%);
+}
+
+@utility bg-image {
+  background-image: url("/images/bg-header-mobile.svg");
+  background-position: center left;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  @media (min-width: 48rem) {
+    background-image: url("/images/bg-header-desktop.svg");
+  }
 }

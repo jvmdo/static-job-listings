@@ -6,8 +6,8 @@ function JobFilter({ className, ...delegated }: ComponentProps<"div">) {
     <div
       {...delegated}
       className={twMerge(
-        className,
         "p-5 grid grid-cols-[1fr_auto] gap-6 rounded-md bg-surface shadow-xl shadow-primary/20 md:px-10",
+        className,
       )}
     >
       <div className="flex flex-wrap gap-4">
@@ -37,8 +37,8 @@ function FilterTag({
   return (
     <div
       className={twMerge(
-        className,
         "w-fit flex items-center gap-1 text-primary bg-background font-bold rounded-sm",
+        className,
       )}
       {...delegated}
     >
