@@ -1,0 +1,54 @@
+import type { ComponentProps } from "react";
+import { twMerge } from "tailwind-merge";
+
+function JobFilter({ className, ...delegated }: ComponentProps<"div">) {
+  return (
+    <div
+      {...delegated}
+      className={twMerge(
+        className,
+        "p-5 grid grid-cols-[1fr_auto] gap-6 rounded-md bg-surface shadow-xl shadow-primary/20 md:px-10",
+      )}
+    >
+      <div className="flex flex-wrap gap-4">
+        <FilterTag>Frontend</FilterTag>
+        <FilterTag>CSS</FilterTag>
+        <FilterTag>JavaScript</FilterTag>
+      </div>
+      <div className="self-center">
+        <button
+          type="button"
+          className="text-secondary font-bold hover:text-primary hover:underline"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default JobFilter;
+
+function FilterTag({
+  children,
+  className,
+  ...delegated
+}: ComponentProps<"div">) {
+  return (
+    <div
+      className={twMerge(
+        className,
+        "w-fit flex items-center gap-1 text-primary bg-background font-bold rounded-sm",
+      )}
+      {...delegated}
+    >
+      <span className="px-2">{children}</span>
+      <button
+        type="button"
+        className="p-2 rounded-r-sm bg-primary hover:bg-primary-dark transition-colors"
+      >
+        <img src="/icons/remove.svg" alt="remove filter" className="size-3" />
+      </button>
+    </div>
+  );
+}
