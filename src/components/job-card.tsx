@@ -1,3 +1,4 @@
+import { useFilters } from "@/use-filters";
 import type { Job } from "@/use-jobs";
 import { type ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
@@ -5,6 +6,8 @@ import { twMerge } from "tailwind-merge";
 type JobCardProps = Job & ComponentProps<"article">;
 
 function JobCard(props: JobCardProps) {
+  const [, setFilters] = useFilters();
+
   const {
     company,
     logo,
@@ -26,7 +29,7 @@ function JobCard(props: JobCardProps) {
     <article
       {...delegated}
       className={twMerge(
-        "pt-8 pb-6 px-5 flex flex-col gap-3 max-w-125 rounded-sm border-primary bg-surface shadow-xl shadow-primary/20 relative",
+        "pt-8 pb-6 px-5 max-w-125 flex flex-col gap-3 rounded-sm border-primary bg-surface shadow-xl shadow-primary/20 relative",
         "md:max-w-none lg:px-10 lg:py-8 md:flex-row md:items-center md:gap-6",
         isFeatured && "border-l-5",
         className,
@@ -59,13 +62,33 @@ function JobCard(props: JobCardProps) {
         </ul>
       </div>
       <div className="flex flex-wrap gap-4 md:pl-6 md:justify-end md:ml-auto">
-        <JobTag>{role}</JobTag>
-        <JobTag>{level}</JobTag>
+        <JobTag onClick={async () => await setFilters({ role })}>{role}</JobTag>
+        <JobTag onClick={async () => await setFilters({ level })}>
+          {level}
+        </JobTag>
         {languages.map((lang) => (
-          <JobTag>{lang}</JobTag>
+          <JobTag
+            key={lang}
+            onClick={async () =>
+              await setFilters(({ languages: qwer }) => ({
+                languages: [...(qwer ?? []), lang],
+              }))
+            }
+          >
+            {lang}
+          </JobTag>
         ))}
         {tools.map((tool) => (
-          <JobTag>{tool}</JobTag>
+          <JobTag
+            key={tool}
+            onClick={async () =>
+              await setFilters(({ tools }) => ({
+                tools: [...(tools ?? []), tool],
+              }))
+            }
+          >
+            {tool}
+          </JobTag>
         ))}
       </div>
     </article>

@@ -47,9 +47,34 @@ Then crop/optimize/edit your image however you like, add it to your project, and
 
 ## My process
 
+Time estimation: 10h
+
 ### Step by step
 
-1. lol
+1. Starting off by the most difficult layout
+   - Job card (+4h30)
+      - Mobile
+      - Got stuck in the "flex-wrap empty space hell"
+      - Desktop
+
+2. Filters + general layout (+3h30)
+
+3. Fake server with MSW (+1h)
+
+4. Nuqs (+3h30)
+    - Got stuck on the initial complexity of `useQueryStates` + Query integration + filtering
+    - Stale query issue
+
+5. Dataset [7:00 PM]
+    - Change some fields
+
+6. Pagination
+
+7. Animation
+
+8. Handle not so happy path
+    - Empty (no results for filter, no results at all)
+    - API error
 
 ### Built with
 
@@ -66,29 +91,18 @@ Then crop/optimize/edit your image however you like, add it to your project, and
 
 ### What I learned
 
-Use this section to recap over some of your major learnings while working through this project. Writing these out and providing code samples of areas you want to highlight is a great way to reinforce your own knowledge.
+- A child element's vertical margin can affect its parent's position due to a CSS behavior called margin collapsing. This happens when there is no content, padding, or border to separate the top margin of the first child from the parent's top edge. Adding padding, border, overflow other than visible, flex or grid solves the issue.
 
-To see how you can add code snippets, see below:
+- There is no CSS-only solution for shrink to fit the empty space left by `flex-wrap`.
 
-```html
-<h1>Some HTML code I'm proud of</h1>
-```
+- Remember: relative URL is `fetch()` is resolved relative to the current page URL, not project root.
 
-```css
-.proud-of-this-css {
-  color: papayawhip;
-}
-```
+- Remember: place `data.json` files in `public` directory (Vite) otherwise it won't be found by `fetch()`! Files in this folder won't be bundled. They will be fetched dynamically instead.
 
-```js
-const proudOfThisFunc = () => {
-  console.log('🎉')
-}
-```
+- Remember: `twMerge("...", className)` (className after defined styles) otherwise you would need to `!important`
 
-If you want more help with writing markdown, we'd recommend checking out [The Markdown Guide](https://www.markdownguide.org/) to learn more.
-
-**Note: Delete this note and the content within this section and replace with your own learnings.**
+- I ran into the situation where `URLSearchParams` was getting stale values from within `queryFn`. This happens because nuqs state update is instantaneous but URL updates are *asynchronous*. That way, when the `queryFn` is invoked, the URL search params are not fresh yet!
+  - The solution is straightforward: just use the `queryKey` to build the query params instead.
 
 ### Continued development
 
@@ -97,6 +111,8 @@ Use this section to outline areas that you want to continue focusing on in futur
 **Note: Delete this note and the content within this section and replace with your own plans for continued development.**
 
 ### Useful resources
+
+<https://github.com/w3c/csswg-drafts/issues/191>
 
 - [Example resource 1](https://www.example.com) - This helped me for XYZ reason. I really liked this pattern and will use it going forward.
 - [Example resource 2](https://www.example.com) - This is an amazing article which helped me finally understand XYZ. I'd recommend it to anyone still learning this concept.
