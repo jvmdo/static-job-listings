@@ -11,6 +11,7 @@ export type Job = {
   role: string;
   level: string;
   postedAt: string;
+  postedDate: string;
   contract: string;
   location: string;
   languages: string[];
