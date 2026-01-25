@@ -2,6 +2,7 @@
 
 @layer base {
   html {
+    min-width: 20rem;
     font-optical-sizing: auto;
     font-weight: 500;
   }
@@ -16,6 +17,10 @@
 
   :where(button:hover) {
     cursor: pointer;
+  }
+
+  button {
+    @apply focus:outline-primary focus:outline-2 focus:outline-solid focus:outline-offset-2;
   }
 }
 
