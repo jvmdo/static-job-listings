@@ -9,6 +9,8 @@ export const handlers = [
     await delay();
 
     const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
     const filters = {
       role: url.searchParams.get("role"),
       level: url.searchParams.get("level"),
@@ -17,8 +19,21 @@ export const handlers = [
     };
 
     const filteredJobs = getFilteredJobs(data, filters);
+    const total = filteredJobs.length;
+    const totalPages = Math.ceil(total / pageSize);
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const jobs = filteredJobs.slice(start, end);
 
-    return HttpResponse.json(filteredJobs);
+    return HttpResponse.json({
+      jobs,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+      },
+    });
   }),
 ];
 
