@@ -1,4 +1,4 @@
-import { useFilters } from "@/use-filters";
+import { useFilters, type FilterCategories } from "@/use-filters";
 import type { Job } from "@/use-jobs";
 import { type ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
@@ -6,8 +6,6 @@ import { twMerge } from "tailwind-merge";
 type JobCardProps = Job & ComponentProps<"article">;
 
 function JobCard(props: JobCardProps) {
-  const [, setFilters] = useFilters();
-
   const {
     company,
     logo,
@@ -17,6 +15,7 @@ function JobCard(props: JobCardProps) {
     role,
     level,
     postedAt,
+    postedDate,
     contract,
     location,
     languages,
@@ -44,7 +43,7 @@ function JobCard(props: JobCardProps) {
       >
         <img src={`/images/${logo}`} alt={company} className="block w-full" />
       </div>
-      <div className="grow flex flex-col justify-between gap-3 md:gap-1">
+      <div className="grow shrink-0 flex flex-col justify-between gap-3 md:gap-1">
         <div className="flex items-center gap-2">
           <h4 className="text-primary text-[0.825rem] font-bold mt-1 mr-3 md:text-base md:mt-0">
             {company}
@@ -56,39 +55,19 @@ function JobCard(props: JobCardProps) {
           {position}
         </h3>
         <ul className="flex items-center gap-4 pb-3 border-b border-secondary md:border-none md:pb-0 md:-mt-1">
-          <JobMeta>{postedAt}</JobMeta>
+          <JobMeta>{<time dateTime={postedDate}>{postedAt}</time>}</JobMeta>
           <JobMeta>{contract}</JobMeta>
           <JobMeta>{location}</JobMeta>
         </ul>
       </div>
       <div className="flex flex-wrap gap-4 md:pl-6 md:justify-end md:ml-auto">
-        <JobTag onClick={async () => await setFilters({ role })}>{role}</JobTag>
-        <JobTag onClick={async () => await setFilters({ level })}>
-          {level}
-        </JobTag>
+        <JobTag category="role" value={role} />
+        <JobTag category="level" value={level} />
         {languages.map((lang) => (
-          <JobTag
-            key={lang}
-            onClick={async () =>
-              await setFilters(({ languages: qwer }) => ({
-                languages: [...(qwer ?? []), lang],
-              }))
-            }
-          >
-            {lang}
-          </JobTag>
+          <JobTag key={lang} category="languages" value={lang} />
         ))}
         {tools.map((tool) => (
-          <JobTag
-            key={tool}
-            onClick={async () =>
-              await setFilters(({ tools }) => ({
-                tools: [...(tools ?? []), tool],
-              }))
-            }
-          >
-            {tool}
-          </JobTag>
+          <JobTag key={tool} category="tools" value={tool} />
         ))}
       </div>
     </article>
@@ -97,21 +76,25 @@ function JobCard(props: JobCardProps) {
 
 export default JobCard;
 
-function JobTag({
-  children,
-  className,
-  ...delegated
-}: ComponentProps<"button">) {
+interface JobTagProps extends ComponentProps<"button"> {
+  category: FilterCategories;
+  value: string;
+}
+
+function JobTag({ category, value, className, ...delegated }: JobTagProps) {
+  const { addFilter } = useFilters();
+
   return (
     <button
       type="button"
+      onClick={() => addFilter(category, value)}
       className={twMerge(
         "px-2 py-1 text-primary bg-background font-bold rounded-sm hover:bg-primary hover:text-surface transition-colors",
         className,
       )}
       {...delegated}
     >
-      {children}
+      {value}
     </button>
   );
 }

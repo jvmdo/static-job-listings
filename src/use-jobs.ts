@@ -1,4 +1,4 @@
-import { serialize } from "@/use-filters";
+import { buildUrlParams, searchParams } from "@/use-filters";
 import { useQuery } from "@tanstack/react-query";
 
 export type Job = {
@@ -15,21 +15,20 @@ export type Job = {
   contract: string;
   location: string;
   languages: string[];
-  tools: [];
+  tools: string[];
 };
 
 export type JobFilters = {
-  role?: string | null;
-  level?: string | null;
-  languages?: string[] | null;
-  tools?: string[] | null;
+  [K in keyof typeof searchParams]?: K extends "languages" | "tools"
+    ? string[] | null
+    : string | null;
 };
 
 export function useJobs(filters: JobFilters) {
   return useQuery({
     queryKey: ["jobs", filters],
     queryFn: async () => {
-      const urlParams = serialize(filters);
+      const urlParams = buildUrlParams(filters);
       const jobsEndpoint = new URL("/jobs", window.location.href);
       jobsEndpoint.search = urlParams;
       // MSW ignores query params, but defining for consistency

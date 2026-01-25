@@ -3,7 +3,12 @@ import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
 function FilterBar({ className, ...delegated }: ComponentProps<"div">) {
-  const [filters, setFilters] = useFilters();
+  const { filterEntries, hasFilters, removeFilter, clearFilters } =
+    useFilters();
+
+  if (!hasFilters) {
+    return null;
+  }
 
   return (
     <div
@@ -14,42 +19,17 @@ function FilterBar({ className, ...delegated }: ComponentProps<"div">) {
       )}
     >
       <div className="flex flex-wrap gap-4">
-        {Object.values(filters)
-          .filter((f) => Boolean(f) && Boolean(f?.length))
-          .flatMap((filter) => filter)
-          .map((filter) => (
-            <FilterTag
-              key={filter as string}
-              onClick={async () => {
-                for (const [key, value] of Object.entries(filters)) {
-                  console.log([key, value]);
-                  if (value === filter || value?.includes(filter ?? "")) {
-                    setFilters({
-                      [key]:
-                        typeof value === "string"
-                          ? null
-                          : value?.filter((f) => f !== filter),
-                    });
-                  }
-                }
-              }}
-            >
-              {filter}
-            </FilterTag>
-          ))}
+        {filterEntries.map(([category, value]) => (
+          <FilterTag key={value} onClick={() => removeFilter(category, value)}>
+            {value}
+          </FilterTag>
+        ))}
       </div>
       <div className="self-center">
         <button
           type="button"
           className="text-secondary font-bold hover:text-primary hover:underline"
-          onClick={async () =>
-            await setFilters({
-              role: null,
-              level: null,
-              languages: null,
-              tools: null,
-            })
-          }
+          onClick={clearFilters}
         >
           Clear
         </button>
