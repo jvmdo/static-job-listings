@@ -1,5 +1,6 @@
+import { type ComponentProps, type MouseEvent } from "react";
+
 import { Pagination, usePaginationContext } from "@ark-ui/react/pagination";
-import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
 interface JobPaginationProps {
@@ -34,7 +35,7 @@ function JobPagination({
               disabled={page === 1}
               className="order-4 lg:order-2"
             />
-            <div className="col-span-4 order-1 flex flex-wrap items-center justify-center gap-3 sm:justify-between lg:order-3 lg:col-span-1">
+            <div className="col-span-4 order-1 flex flex-wrap items-center justify-center gap-3 lg:order-3 lg:col-span-1">
               {pages.map((page, index) =>
                 page.type === "page" ? (
                   <PaginationButtonItem key={index} {...page} />
@@ -117,11 +118,23 @@ function PaginationButtonEnd(props: ComponentProps<typeof PaginationButton>) {
 function PaginationButton({
   children,
   className,
+  onClick,
   ...delegated
 }: ComponentProps<"button">) {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    const mainEl = document.querySelector("main");
+
+    requestAnimationFrame(() => {
+      mainEl?.scrollIntoView();
+    });
+
+    onClick?.(e);
+  };
+
   return (
     <button
       {...delegated}
+      onClick={handleClick}
       type="button"
       style={{ width: "3rem", height: "3rem", aspectRatio: 1 }} // tf is going on Ark UI?
       className={twMerge(

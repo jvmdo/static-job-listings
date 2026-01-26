@@ -5,6 +5,8 @@
     min-width: 20rem;
     font-optical-sizing: auto;
     font-weight: 500;
+    scroll-behavior: smooth;
+    scroll-padding: 2rem;
   }
 
   body {
@@ -26,6 +28,7 @@
 
 @theme {
   --font-sans: "League Spartan", sans-serif;
+  --font-cursive: "Redacted Script", cursive;
 
   --color-primary: hsl(180, 29%, 50%);
   --color-primary-dark: hsl(180, 14%, 20%);
@@ -33,6 +36,17 @@
   --color-background: hsl(180, 52%, 96%);
   --color-surface: hsl(0, 0%, 100%);
   --color-light: hsl(180, 8%, 85%);
+
+  --animate-loading: 1s cubic-bezier(0.694, 0.0482, 0.335, 1) infinite loading;
+
+  @keyframes loading {
+    0% {
+      transform: scaleX(1) translateX(-100%);
+    }
+    100% {
+      transform: scaleX(0) translateX(-100%);
+    }
+  }
 }
 
 @utility bg-image {

@@ -3,7 +3,10 @@ import type { Job } from "@/use-jobs";
 import { type ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
-type JobCardProps = Job & ComponentProps<"article">;
+type JobCardProps = Job &
+  ComponentProps<"article"> & {
+    isLoading: boolean;
+  };
 
 function JobCard(props: JobCardProps) {
   const {
@@ -21,6 +24,7 @@ function JobCard(props: JobCardProps) {
     languages,
     tools,
     className,
+    isLoading,
     ...delegated
   } = props;
 
@@ -31,6 +35,7 @@ function JobCard(props: JobCardProps) {
         "pt-8 pb-6 px-5 flex flex-col gap-3 rounded-sm border-primary bg-surface shadow-xl shadow-primary/20 relative",
         "lg:px-10 lg:py-8 lg:flex-row lg:items-center lg:gap-6",
         isFeatured && "border-l-5",
+        isLoading && "grayscale pointer-events-none",
         className,
       )}
     >
@@ -51,7 +56,7 @@ function JobCard(props: JobCardProps) {
           {isNew && <JobBadgeNew />}
           {isFeatured && <JobBadgeFeatured />}
         </div>
-        <h3 className="text-primary-dark text-[0.825rem] font-bold lg:text-xl hover:text-primary hover:cursor-help">
+        <h3 className="text-primary-dark text-[0.825rem] font-bold w-fit lg:text-xl hover:text-primary hover:cursor-help">
           {position}
         </h3>
         <ul className="flex items-center gap-4 pb-3 border-b border-secondary lg:border-none lg:pb-0 lg:-mt-1">
@@ -81,7 +86,12 @@ interface JobTagProps extends ComponentProps<"button"> {
   value: string;
 }
 
-function JobTag({ category, value, className, ...delegated }: JobTagProps) {
+export function JobTag({
+  category,
+  value,
+  className,
+  ...delegated
+}: JobTagProps) {
   const { addFilter } = useFilters();
 
   return (
@@ -100,7 +110,11 @@ function JobTag({ category, value, className, ...delegated }: JobTagProps) {
   );
 }
 
-function JobMeta({ children, className, ...delegated }: ComponentProps<"li">) {
+export function JobMeta({
+  children,
+  className,
+  ...delegated
+}: ComponentProps<"li">) {
   return (
     <li
       {...delegated}

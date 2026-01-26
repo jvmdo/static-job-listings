@@ -1,8 +1,14 @@
-import { useFilters } from "@/use-filters";
 import type { ComponentProps } from "react";
+
+import { useFilters } from "@/use-filters";
+import { Progress } from "@ark-ui/react/progress";
 import { twMerge } from "tailwind-merge";
 
-function FilterBar({ className, ...delegated }: ComponentProps<"div">) {
+interface FilterBarProps extends ComponentProps<"div"> {
+  isLoading: boolean;
+}
+
+function FilterBar({ isLoading, className, ...delegated }: FilterBarProps) {
   const { filterEntries, hasFilters, removeFilter, clearFilters } =
     useFilters();
 
@@ -14,7 +20,7 @@ function FilterBar({ className, ...delegated }: ComponentProps<"div">) {
     <div
       {...delegated}
       className={twMerge(
-        "p-5 grid grid-cols-[1fr_auto] gap-6 rounded-md bg-surface shadow-xl shadow-primary/20 md:px-10",
+        "relative p-5 grid grid-cols-[1fr_auto] gap-6 rounded-md bg-surface shadow-xl shadow-primary/20 md:px-10",
         className,
       )}
     >
@@ -34,6 +40,7 @@ function FilterBar({ className, ...delegated }: ComponentProps<"div">) {
           Clear
         </button>
       </div>
+      {isLoading && <LoadingIndicator />}
     </div>
   );
 }
@@ -61,5 +68,15 @@ function FilterTag({
         <img src="/icons/remove.svg" alt="remove filter" className="size-3" />
       </button>
     </div>
+  );
+}
+
+function LoadingIndicator() {
+  return (
+    <Progress.Root defaultValue={null} className="absolute inset-x-0 bottom-0">
+      <Progress.Track className="h-1 overflow-hidden rounded-b-sm bg-secondary/30">
+        <Progress.Range className="animate-loading h-full w-[210%] bg-primary" />
+      </Progress.Track>
+    </Progress.Root>
   );
 }

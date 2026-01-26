@@ -6,7 +6,7 @@ import data from "./data.json";
 export const handlers = [
   // TODO: does relative work for any location.href?
   http.get("/jobs", async ({ request }) => {
-    await delay();
+    await delay(1000);
 
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1");

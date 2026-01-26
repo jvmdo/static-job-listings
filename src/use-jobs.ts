@@ -1,5 +1,5 @@
 import { buildUrlParams, searchParams } from "@/use-filters";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import z from "zod";
 
 const JobSchema = z.object({
@@ -54,6 +54,8 @@ export function useJobs(filters: JobFilters, page: number) {
 
       return JobsResponseSchema.parse(data);
     },
+    staleTime: 1000 * 60,
+    placeholderData: keepPreviousData,
   });
 }
 
