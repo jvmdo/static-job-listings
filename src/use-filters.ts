@@ -67,6 +67,7 @@ export function useFilters() {
 
   return {
     filters,
+    setFilters,
     filterEntries,
     addFilter,
     removeFilter,

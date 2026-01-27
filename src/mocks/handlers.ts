@@ -3,10 +3,24 @@ import type { Job, JobFilters } from "@/use-jobs";
 import { delay, http, HttpResponse } from "msw";
 import data from "./data.json";
 
+export const MAX_FAILURES = 2;
+let failureCount = 0;
+
 export const handlers = [
-  // TODO: does relative work for any location.href?
   http.get("/jobs", async ({ request }) => {
-    await delay(1000);
+    const shouldFail = Math.random() > 0.8 + failureCount; // 20% error rate, then 0% after retry
+
+    if (shouldFail || failureCount > 0) {
+      failureCount++;
+      console.warn(`Simulated error ${failureCount}/${MAX_FAILURES}`);
+      failureCount %= MAX_FAILURES;
+      return new HttpResponse(null, {
+        status: 500,
+        statusText: Math.random().toString(),
+      });
+    }
+
+    await delay();
 
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1");

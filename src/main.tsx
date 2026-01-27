@@ -2,9 +2,15 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { handleQueryErrors } from "@/query-errors.ts";
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NuqsAdapter } from "nuqs/adapters/react";
+import { Toaster } from "sonner";
 
 async function enableMocking() {
   const { worker } = await import("./mocks/browser");
@@ -15,11 +21,9 @@ async function enableMocking() {
 }
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
+  queryCache: new QueryCache({
+    onError: handleQueryErrors,
+  }),
 });
 
 enableMocking().then(() => {
@@ -28,6 +32,7 @@ enableMocking().then(() => {
       <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
           <App />
+          <Toaster richColors />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </NuqsAdapter>
