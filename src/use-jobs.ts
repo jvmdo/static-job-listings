@@ -3,6 +3,7 @@ import { QueryErrCodes } from "@/query-errors";
 import { buildUrlParams, searchParams } from "@/use-filters";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
+import { useEffect, useEffectEvent } from "react";
 import z from "zod";
 
 const JobSchema = z.object({
@@ -45,10 +46,17 @@ export type JobFilters = HasSameKeysAs<
   }
 >;
 
-export function useJobs(filters: JobFilters, page: number) {
+interface UseJobsParams {
+  queryKey: [JobFilters, number];
+  onError: (previousFilters: JobFilters, previousPage: number) => void;
+  onRetry: () => void;
+}
+
+export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
+  const [filters, page] = queryKey;
   const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["jobs", filters, page],
     queryFn: async ({ signal }) => {
       // MSW ignores query params, but defining for consistency
@@ -79,6 +87,28 @@ export function useJobs(filters: JobFilters, page: number) {
       errCode: QueryErrCodes.JOBS_FETCH_FAILED,
     },
   });
+
+  const setPreviousData = useEffectEvent(() => {
+    const previousQueryKey = query.error ? query.error.message : "[]";
+    const [, previousFilters, previousPage] = JSON.parse(previousQueryKey);
+    onError(previousFilters, previousPage);
+  });
+
+  useEffect(() => {
+    if (query.isError) {
+      setPreviousData();
+    }
+  }, [query.isError]);
+
+  const hasRetry = query.failureCount > 1;
+
+  useEffect(() => {
+    if (hasRetry) {
+      onRetry();
+    }
+  }, [hasRetry, onRetry]);
+
+  return query;
 }
 
 type HasSameKeysAs<
