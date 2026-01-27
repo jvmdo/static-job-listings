@@ -1,3 +1,4 @@
+import { usePage } from "@/hooks/use-page";
 import { flattenObject } from "es-toolkit";
 import {
   createSerializer,
@@ -18,6 +19,7 @@ export type FilterCategories = keyof typeof searchParams;
 export const buildUrlParams = createSerializer(searchParams);
 
 export function useFilters() {
+  const [, setPage] = usePage();
   const [filters, setFilters] = useQueryStates(searchParams);
 
   const filterValues = Object.values(filters).flat().filter(Boolean);
@@ -39,6 +41,10 @@ export function useFilters() {
       newFilter = Array.from(new Set(filters.tools).add(value));
     }
 
+    if (!filterValues.includes(value)) {
+      setPage(1);
+    }
+
     setFilters({ [type]: newFilter });
   };
 
@@ -54,9 +60,11 @@ export function useFilters() {
     }
 
     setFilters({ [type]: nextFilter });
+    setPage(1);
   };
 
   const clearFilters = () => {
+    setPage(1);
     setFilters({
       role: null,
       level: null,

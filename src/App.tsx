@@ -7,13 +7,11 @@ import NoResults from "@/components/no-results";
 import SkeletonJobCardList from "@/components/skeleton-job-card-list";
 import { useFilters } from "@/hooks/use-filters";
 import { useJobs } from "@/hooks/use-jobs";
-import { parseAsInteger, useQueryState } from "nuqs";
+import { usePage } from "@/hooks/use-page";
 import { toast } from "sonner";
 
-// TODO: reset pagination on filter (in/out)
-
 function App() {
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [page, setPage] = usePage();
   const { filters, setFilters } = useFilters();
   const { data, isPending, isPlaceholderData, isError } = useJobs({
     queryKey: [filters, page],
@@ -29,13 +27,13 @@ function App() {
     },
   });
 
-  if (isPending) {
-    return <SkeletonJobCardList />;
-  }
-
   // I think it flashes whenever [isError] is true
   if (isError) {
     return <ErrorFallback />;
+  }
+
+  if (isPending) {
+    return <SkeletonJobCardList />;
   }
 
   const { jobs, pagination } = data;

@@ -1,9 +1,7 @@
 import AppContainer from "@/components/app-container";
 import { useFilters } from "@/hooks/use-filters";
-import { parseAsInteger, useQueryState } from "nuqs";
 
 function NoResults() {
-  const [, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const { clearFilters } = useFilters();
 
   return (
@@ -22,10 +20,7 @@ function NoResults() {
           <button
             type="button"
             className="py-2 w-25 rounded-sm border border-primary text-primary"
-            onClick={() => {
-              clearFilters();
-              setPage(1);
-            }}
+            onClick={clearFilters}
           >
             Reset filters
           </button>
