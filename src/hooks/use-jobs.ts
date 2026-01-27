@@ -1,6 +1,7 @@
+import { QueryErrCodes } from "@/lib/query-errors";
 import { MAX_FAILURES } from "@/mocks/handlers";
-import { QueryErrCodes } from "@/query-errors";
-import { buildUrlParams, searchParams } from "@/use-filters";
+
+import { buildUrlParams, searchParams } from "@/hooks/use-filters";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect, useEffectEvent } from "react";

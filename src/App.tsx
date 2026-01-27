@@ -5,8 +5,8 @@ import JobCard from "@/components/job-card";
 import JobPagination from "@/components/job-pagination";
 import NoResults from "@/components/no-results";
 import SkeletonJobCardList from "@/components/skeleton-job-card-list";
-import { useFilters } from "@/use-filters";
-import { useJobs } from "@/use-jobs";
+import { useFilters } from "@/hooks/use-filters";
+import { useJobs } from "@/hooks/use-jobs";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -24,7 +24,7 @@ function App() {
     onRetry: () => {
       toast.warning("Error while fetching jobs", {
         id: "retry",
-        description: "Wait a second. We are doing our best to fix it.",
+        description: "We are doing our best to fix it",
       });
     },
   });
@@ -50,9 +50,9 @@ function App() {
       {jobs.map((job) => (
         <JobCard
           key={job.id}
-          className="first:mt-23 lg:first:mt-28"
+          job={job}
           isLoading={isPlaceholderData}
-          {...job}
+          className="first:mt-23 lg:first:mt-28"
         />
       ))}
       <JobPagination

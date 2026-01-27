@@ -1,5 +1,5 @@
 import AppContainer from "@/components/app-container";
-import { useFilters } from "@/use-filters";
+import { useFilters } from "@/hooks/use-filters";
 import { parseAsInteger, useQueryState } from "nuqs";
 
 function NoResults() {

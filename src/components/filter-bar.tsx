@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { useFilters } from "@/use-filters";
+import { useFilters } from "@/hooks/use-filters";
 import { Progress } from "@ark-ui/react/progress";
 import { twMerge } from "tailwind-merge";
 

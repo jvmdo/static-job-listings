@@ -1,4 +1,4 @@
-import type { Job, JobFilters } from "@/use-jobs";
+import type { Job, JobFilters } from "@/hooks/use-jobs";
 
 import { delay, http, HttpResponse } from "msw";
 import data from "./data.json";
