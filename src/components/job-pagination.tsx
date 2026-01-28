@@ -1,21 +1,17 @@
 import { type ComponentProps, type MouseEvent } from "react";
 
+import { usePage } from "@/hooks/use-page";
 import { Pagination, usePaginationContext } from "@ark-ui/react/pagination";
 import { twMerge } from "tailwind-merge";
 
 interface JobPaginationProps {
-  page: number;
-  setPage: (page: number) => void;
   count?: number;
   pageSize?: number;
 }
 
-function JobPagination({
-  page,
-  setPage,
-  count = 300,
-  pageSize = 10,
-}: JobPaginationProps) {
+function JobPagination({ count = 300, pageSize = 10 }: JobPaginationProps) {
+  const [page, setPage] = usePage();
+
   return (
     <Pagination.Root
       page={page}

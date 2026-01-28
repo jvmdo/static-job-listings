@@ -1,3 +1,27 @@
+> [!WARNING]
+>
+> **The problem**
+>
+> The list should go back to its last successful state when an error occurs. For that, I implemented a rollback logic, which consists invoke `nuqs` setter functions on `try/catch` within `queryFn`. Also, an error toast should show up.
+>
+> **The bug**
+>
+> Scenario #1: `retry: false`. The error toast shows up, but the "retrying..." toast don't, since I won't be able to use `failureCount`.
+>
+> Scenario #2: `retry: true`. The neither error nor retry toast show up.
+>
+> **Results**
+>
+> Rollback works in both scenarios and `isError` is never `true` (expect if the first mount fails)
+>
+> **The `useEffect` approach**
+>
+> The version on the main branch uses an `useEffect` that reacts to `isError`. Also works, but not sure which approach is better works for Query.
+>
+> **Why bother?**
+>
+> I really want to understand what are the causes so I can workaround that on future projects. Also, learn what is the best approach: rollback right in `queryFn` or in `useEffect`.
+
 # Frontend Mentor - Job listings with filtering solution
 
 This is a solution to the [Job listings with filtering challenge on Frontend Mentor](https://www.frontendmentor.io/challenges/job-listings-with-filtering-ivstIPCt). Frontend Mentor challenges help you improve your coding skills by building realistic projects.

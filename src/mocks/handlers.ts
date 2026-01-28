@@ -5,9 +5,10 @@ import data from "./data.json";
 
 export const handlers = [
   http.get("/jobs", async ({ request }) => {
-    const shouldFail = Math.random() < 0.1; // 10% error rate
+    const shouldFail = Math.random() < 0.5; // 10% error rate
 
     if (shouldFail) {
+      console.warn("Simulated error");
       return new HttpResponse(null, { status: 500 });
     }
 

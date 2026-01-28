@@ -5,20 +5,11 @@ import JobCard from "@/components/job-card";
 import JobPagination from "@/components/job-pagination";
 import NoResults from "@/components/no-results";
 import SkeletonJobCardList from "@/components/skeleton-job-card-list";
-import { useFilters } from "@/hooks/use-filters";
 import { useJobs } from "@/hooks/use-jobs";
-import { usePage } from "@/hooks/use-page";
 import { toast } from "sonner";
 
 function App() {
-  const [page, setPage] = usePage();
-  const { filters, setFilters } = useFilters();
   const { data, isPending, isPlaceholderData, isError } = useJobs({
-    queryKey: [filters, page],
-    onError: (previousFilters, previousPage) => {
-      setFilters(previousFilters);
-      setPage(previousPage);
-    },
     onRetry: () => {
       toast.warning("Error while fetching jobs", {
         id: "retry",
@@ -29,7 +20,6 @@ function App() {
 
   if (isError) {
     console.error("blink blink");
-    // It flashes whenever [isError] is true after first successful mount
     return <ErrorFallback />;
   }
 
@@ -54,12 +44,7 @@ function App() {
           className="first:mt-23 lg:first:mt-28"
         />
       ))}
-      <JobPagination
-        page={page}
-        count={pagination.total}
-        setPage={setPage}
-        pageSize={pagination.pageSize}
-      />
+      <JobPagination count={pagination.total} pageSize={pagination.pageSize} />
     </AppContainer>
   );
 }

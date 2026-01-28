@@ -1,8 +1,9 @@
-import { buildUrlParams, searchParams } from "@/hooks/use-filters";
+import { buildUrlParams, searchParams, useFilters } from "@/hooks/use-filters";
+import { usePage } from "@/hooks/use-page";
 import { QueryErrCodes } from "@/lib/query-errors";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
-import { useEffect, useEffectEvent } from "react";
+import { useEffect } from "react";
 import z from "zod";
 
 const JobSchema = z.object({
@@ -46,53 +47,59 @@ export type JobFilters = HasSameKeysAs<
 >;
 
 interface UseJobsParams {
-  queryKey: [JobFilters, number];
-  onError: (previousFilters: JobFilters, previousPage: number) => void;
   onRetry: () => void;
 }
 
-export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
-  const [filters, page] = queryKey;
-  const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
+export function useJobs({ onRetry }: UseJobsParams) {
+  const [page, setPage] = usePage();
+  const { filters, setFilters } = useFilters();
+
+  const queryKey = ["jobs", filters, page];
+  const currentQueryKey = JSON.stringify(queryKey);
+  const previousQueryKey = usePrevious(currentQueryKey);
 
   const query = useQuery({
-    queryKey: ["jobs", filters, page],
+    queryKey,
     queryFn: async ({ signal }) => {
-      // MSW ignores query params, but defining for consistency
-      const urlParams = buildUrlParams(filters) + `&page=${page}`;
-      const jobsEndpoint = new URL("/jobs", window.location.href);
-      jobsEndpoint.search = urlParams;
+      try {
+        // MSW ignores query params, but defining for consistency
+        const urlParams = buildUrlParams(filters) + `&page=${page}`;
+        const jobsEndpoint = new URL("/jobs", window.location.href);
+        jobsEndpoint.search = urlParams;
 
-      const response = await fetch(jobsEndpoint, { signal });
+        const response = await fetch(jobsEndpoint, { signal });
 
-      if (!response.ok) {
-        throw new Error(previousQueryKey ?? "[]");
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        const data = await response.json();
+
+        return JobsResponseSchema.parse(data);
+      } catch (err) {
+        const [, previousFilters, previousPage] = JSON.parse(previousQueryKey);
+        setFilters(previousFilters);
+        setPage(previousPage);
+        throw err;
       }
-
-      const data = await response.json();
-
-      return JobsResponseSchema.parse(data);
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     placeholderData: keepPreviousData,
+    retry: (failureCount) => {
+      return failureCount < 2;
+    },
+    // retry: false,
     meta: {
       errCode: QueryErrCodes.JOBS_FETCH_FAILED,
     },
   });
 
-  const setPreviousData = useEffectEvent(() => {
-    const previousQueryKey = query.error ? query.error.message : "[]";
-    const [, previousFilters, previousPage] = JSON.parse(previousQueryKey);
-    onError(previousFilters, previousPage);
-  });
+  //? QUESTION: Only logged on mount if it fails, never after successful mount
+  if (query.status === "error") {
+    console.error("An error indeed");
+  }
 
-  useEffect(() => {
-    if (query.isError) {
-      setPreviousData();
-    }
-  }, [query.isError]);
-
-  const hasRetry = query.failureCount > 1;
+  const hasRetry = query.failureCount > 2;
 
   useEffect(() => {
     if (hasRetry) {
@@ -102,6 +109,10 @@ export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
 
   return query;
 }
+
+/* 
+  types.ts
+*/
 
 type HasSameKeysAs<
   T,
