@@ -6,17 +6,15 @@ This is a solution to the [Job listings with filtering challenge on Frontend Men
 
 - [Overview](#overview)
   - [The challenge](#the-challenge)
-  - [Screenshot](#screenshot)
-  - [Links](#links)
+  - [Screencast](#screencast)
+  - [Live preview](#live-preview)
 - [My process](#my-process)
+  - [Step-by-step](#step-by-step)
   - [Built with](#built-with)
   - [What I learned](#what-i-learned)
+  - [Remaining questions](#remaining-questions)
   - [Continued development](#continued-development)
   - [Useful resources](#useful-resources)
-- [Author](#author)
-- [Acknowledgments](#acknowledgments)
-
-**Note: Delete this note and update the table of contents based on what sections you keep.**
 
 ## Overview
 
@@ -28,26 +26,32 @@ Users should be able to:
 - See hover states for all interactive elements on the page
 - Filter job listings based on the categories
 
-### Screenshot
+#### Beyond the challenge
 
-![](./screenshot.jpg)
+For this challenge, I added tons of extra features:
 
-Add a screenshot of your solution. The easiest way to do this is to use Firefox to view your project, right-click the page and select "Take a Screenshot". You can choose either a full-height screenshot or a cropped one based on how long the page is. If it's very long, it might be best to crop it.
+- Pagination
+- nuqs for URL search params state management
+- Query for server state synchronization
+- MSW for faking an API and database
+- Handle all states (empty, loading, error, success)
+  - The list remains at its last successful state if a fetch error happens
+- faker.js for generating mock data
 
-Alternatively, you can use a tool like [FireShot](https://getfireshot.com/) to take the screenshot. FireShot has a free option, so you don't need to purchase it.
+### Screencast
 
-Then crop/optimize/edit your image however you like, add it to your project, and update the file path in the image above.
+![WYSIWYG](./screencast.gif)
 
-**Note: Delete this note and the paragraphs above when you add your screenshot. If you prefer not to add a screenshot, feel free to remove this entire section.**
+### Live Preview
 
-### Links
-
-- Solution URL: [Add solution URL here](https://your-solution-url.com)
-- Live Site URL: [Add live site URL here](https://your-live-site-url.com)
+- Solution URL: [Solution on Frontend Mentor](https://www.frontendmentor.io/solutions/an-almost-real-pagination-experience-using-nuqs-query-and-msw-PhjJuiaGqd)
+- Live Site URL: [Job Listing App on Netlify](https://static-job-listings-jvmdo.netlify.app/)
 
 ## My process
 
-Time estimation: 10h
+Time estimation: 10h | Actual time: 40h
+
+I finished the proposed challenge in about 10h. The other 30hs I spent in cool extra features 🤓
 
 ### Step by step
 
@@ -65,31 +69,49 @@ Time estimation: 10h
     - Got stuck on the initial complexity of `useQueryStates` + Query integration + filtering
     - Stale query issue
 
-5. Dataset [7:00 PM]
-    - Change some fields
+5. Dataset (+1h30)
+    - Generation
 
-6. Pagination
+6. Refactor filtering (+3h)
+    - Encapsulate logic and utilities in custom hooks
+    - `useFilters` utilities are burning my neurons!
 
-7. Animation
+7. Pagination (+6h30)
+    - Adapt MSW handler
+    - Learn about Ark's pagination component
+    - nuqs + pagination + query integration
+    - styling + responsive layout
+    - prefetch
 
-8. Handle not so happy path
+8. Handle not so happy paths (+11h)
+    - Loading (initial, keep old + horizontal indicator)
     - Empty (no results for filter, no results at all)
-    - API error
+    - Scroll position
+    - Debounce or abort too many sequencial pagination
+    - Params set directly in URL
+    - Error
+        - Got stuck on `data undefined` when `error` exists
+        - I want to revert to the previous data on error but it's not that simple
+
+9. More refactoring and refinings (+6h)
+
+10. Animation [NOT GOING]
+    - Enter and exit animation for filter bar
+    - jobs list height / snap scroll
 
 ### Built with
 
-- Semantic HTML5 markup
-- CSS custom properties
-- Flexbox
-- CSS Grid
-- Mobile-first workflow
-- [React](https://reactjs.org/) - JS library
-- [Next.js](https://nextjs.org/) - React framework
-- [Styled Components](https://styled-components.com/) - For styles
-
-**Note: These are just examples. Delete this note and replace the list above with your own choices**
+- React.js (Vite)
+- nuqs
+- Tanstack Query v5
+- Mock Service Worker
+- Ark UI
+- tailwindcss
+- faker.js
 
 ### What I learned
+
+- MSW doesn't mention `@msw/data` in its docs! It's a powerful data querying library for testing
 
 - A child element's vertical margin can affect its parent's position due to a CSS behavior called margin collapsing. This happens when there is no content, padding, or border to separate the top margin of the first child from the parent's top edge. Adding padding, border, overflow other than visible, flex or grid solves the issue.
 
@@ -104,31 +126,74 @@ Time estimation: 10h
 - I ran into the situation where `URLSearchParams` was getting stale values from within `queryFn`. This happens because nuqs state update is instantaneous but URL updates are *asynchronous*. That way, when the `queryFn` is invoked, the URL search params are not fresh yet!
   - The solution is straightforward: just use the `queryKey` to build the query params instead.
 
+- nuqs `parseAsNativeArrayOf` empty value is `[]` while `parseAsArrayOf` is `null`.
+
+- Remember: `NaN` is falsy! You can use `parseInt(NaN || '1')`.
+
+- Ark UI's Pagination component review:
+    1. Some styling doesn't work on Tailwind? I had to set `style={{height}}`
+    2. There is some weirdness going on around the sizing properties
+    3. No responsive styles support
+    Overall: good.
+
+- It looks like the a11y of those headless components libraries don't include live announcements. Therefore, I'd include ARIA live myself for things like status changes. For example, the loading indicator should be announced by assistive technologies otherwise the user won't know the loading status.
+
+- `requestAnimationFrame` fixed `scrollIntoView` not working consistently for cached page transitions.
+
+- Remember: Query's `isPending` will be `true` only on mount if `placeholderData` is set to `keepPreviousData`.
+
+- `keepPreviousData` will keep previous data only *while status is `pending`*. That is, if query succeeds, data is renewed; if query fails, there are two possibilities: if there is data in cache *for that query key*, it will be maintained; otherwise, data will be `undefined`. If you don't handle all cases, will be trapped in *infinite loading hell*.
+
+- Status vs. Data: A query can be in an error status while still holding a data value.
+  - Exception: if a query fails on its *first-ever attempt (initial fetch)*, there is no cached data to show, so data will be `undefined`.
+
+- Explicit props when merging custom props with `ComponentProps`:
+
+    ```tsx
+        // DON'T DO THIS
+        type JobCardProps = Job & ComponentProps<"article"> & {
+            isLoading: boolean;
+        };
+
+        // DO THIS INSTEAD
+        type JobCardProps = {
+            job: Job;
+            isLoading: boolean;
+        } & ComponentProps<"article">;
+    ```
+
+- Query filters are used to... well, filter queries by keys! So, if you pass only the topmost key, say `queryClient.refetchQueries(['jobs'])`, all entries will be refetched! This is the default behavior. It's possible to apply some configuration.
+
+#### Remaining questions
+
+- Just... WHY?
+
+  | Approach    | retry | `isError` behavior                                                       | rollback          | toast error | toast retry |
+  | ----------- | ----- | ------------------------------------------------------------------------ | ----------------- | ----------- | ----------- |
+  | `queryFn`   | false | `true` on mount $^1$; `false` afterward $^2$                             | instant           | shows       | don’t       |
+  | `queryFn`   | true  | `true` on mount $^1$; `false` afterward $^2$                             | instant           | shows       | don’t       |
+  | `useEffect` | true  | `true` on mount $^1$; `true` on subsequent errors                        | waits for retries | shows       | shows       |
+  | `useEffect` | false | `true` on mount $^1$; `true` on subsequent errors                        | instant           | shows       | don’t       |
+
+  $^1$ if there was an error
+
+  $^2$ even if `queryFn` throws
+
 ### Continued development
 
-Use this section to outline areas that you want to continue focusing on in future projects. These could be concepts you're still not completely comfortable with or techniques you found useful that you want to refine and perfect.
+- Add data prefetch for next page
 
-**Note: Delete this note and the content within this section and replace with your own plans for continued development.**
+    ```tsx
+    useEffect(() => {
+        queryClient.prefetchQuery(queryOptionsFactory());
+        //No unnecessary prefetch is performed, but I'd turn them stable
+    }, [filters, page, previousQueryKey, queryClient]); */
+    ```
 
 ### Useful resources
 
-<https://github.com/w3c/csswg-drafts/issues/191>
+- [Shrink to fit open issue](https://github.com/w3c/csswg-drafts/issues/191) - This helped me realize IT IS NOT POSSIBLE to make a flex container with `flex-wrap: wrap` shrink to fit its width using CSS only.
 
-- [Example resource 1](https://www.example.com) - This helped me for XYZ reason. I really liked this pattern and will use it going forward.
-- [Example resource 2](https://www.example.com) - This is an amazing article which helped me finally understand XYZ. I'd recommend it to anyone still learning this concept.
+- [Breaking React Query's API on purpose](httpshttps://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
 
-**Note: Delete this note and replace the list above with resources that helped you during the challenge. These could come in handy for anyone viewing your solution or for yourself when you look back on this project in the future.**
-
-## Author
-
-- Website - [Add your name here](https://www.your-site.com)
-- Frontend Mentor - [@yourusername](https://www.frontendmentor.io/profile/yourusername)
-- Twitter - [@yourusername](https://www.twitter.com/yourusername)
-
-**Note: Delete this note and add/remove/edit lines above based on what links you'd like to share.**
-
-## Acknowledgments
-
-This is where you can give a hat tip to anyone who helped you out on this project. Perhaps you worked in a team or got some inspiration from someone else's solution. This is the perfect place to give them some credit.
-
-**Note: Delete this note and edit this section's content as necessary. If you completed this challenge by yourself, feel free to delete this section entirely.**
+- [How to run logic onError in `QueryCache`](https://stackoverflow.com/a/76961109/21858786)
