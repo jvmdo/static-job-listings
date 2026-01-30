@@ -27,8 +27,9 @@ function App() {
     },
   });
 
-  // I think it flashes whenever [isError] is true
   if (isError) {
+    console.error("blink blink");
+    // It flashes whenever [isError] is true after first successful mount
     return <ErrorFallback />;
   }
 

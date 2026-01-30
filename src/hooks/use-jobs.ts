@@ -1,7 +1,5 @@
-import { QueryErrCodes } from "@/lib/query-errors";
-import { MAX_FAILURES } from "@/mocks/handlers";
-
 import { buildUrlParams, searchParams } from "@/hooks/use-filters";
+import { QueryErrCodes } from "@/lib/query-errors";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect, useEffectEvent } from "react";
@@ -68,9 +66,7 @@ export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
       const response = await fetch(jobsEndpoint, { signal });
 
       if (!response.ok) {
-        throw new Error(previousQueryKey ?? "[]", {
-          cause: response.statusText,
-        });
+        throw new Error(previousQueryKey ?? "[]");
       }
 
       const data = await response.json();
@@ -79,11 +75,6 @@ export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     placeholderData: keepPreviousData,
-    retry: (failureCount, error) => {
-      // Hack for demonstration purposes
-      const shouldRetry = Number(error.cause);
-      return failureCount < MAX_FAILURES || shouldRetry > 0.5;
-    },
     meta: {
       errCode: QueryErrCodes.JOBS_FETCH_FAILED,
     },

@@ -12,6 +12,7 @@ export function handleQueryErrors(
   switch (query.meta?.errCode) {
     case QueryErrCodes.JOBS_FETCH_FAILED: {
       return toast.error("Error while fetching new jobs", {
+        id: "error",
         description: "Please, try again",
       });
     }
