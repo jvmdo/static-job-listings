@@ -2,9 +2,10 @@ import type { ComponentProps } from "react";
 
 import { useFilters } from "@/hooks/use-filters";
 import { Progress } from "@ark-ui/react/progress";
+import { motion } from "motion/react";
 import { twMerge } from "tailwind-merge";
 
-interface FilterBarProps extends ComponentProps<"div"> {
+interface FilterBarProps extends ComponentProps<typeof motion.div> {
   isLoading: boolean;
 }
 
@@ -17,18 +18,29 @@ function FilterBar({ isLoading, className, ...delegated }: FilterBarProps) {
   }
 
   return (
-    <div
+    <motion.div
       {...delegated}
       className={twMerge(
         "relative p-5 grid grid-cols-[1fr_auto] gap-6 rounded-md bg-surface shadow-xl shadow-primary/20 md:px-10",
         className,
       )}
+      layout="position"
     >
       <div className="flex flex-wrap gap-4">
         {filterEntries.map(([category, value]) => (
-          <FilterTag key={value} onClick={() => removeFilter(category, value)}>
-            {value}
-          </FilterTag>
+          <motion.div
+            key={`${category}:${value}`}
+            layoutId={`${category}:${value}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <FilterTag
+              key={value}
+              onClick={() => removeFilter(category, value)}
+            >
+              {value}
+            </FilterTag>
+          </motion.div>
         ))}
       </div>
       <div className="self-center">
@@ -41,7 +53,7 @@ function FilterBar({ isLoading, className, ...delegated }: FilterBarProps) {
         </button>
       </div>
       {isLoading && <LoadingIndicator />}
-    </div>
+    </motion.div>
   );
 }
 

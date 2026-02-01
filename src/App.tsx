@@ -1,11 +1,12 @@
 import AppContainer from "@/components/app-container";
 import ErrorFallback from "@/components/error-fallback";
 import FilterBar from "@/components/filter-bar";
-import JobCard from "@/components/job-card";
+import JobCardList from "@/components/job-card-list";
 import JobPagination from "@/components/job-pagination";
 import NoResults from "@/components/no-results";
 import SkeletonJobCardList from "@/components/skeleton-job-card-list";
 import { useJobs } from "@/hooks/use-jobs";
+
 import { toast } from "sonner";
 
 function App() {
@@ -37,14 +38,11 @@ function App() {
   return (
     <AppContainer>
       <FilterBar isLoading={isPlaceholderData} />
-      {jobs.map((job) => (
-        <JobCard
-          key={job.id}
-          job={job}
-          isLoading={isPlaceholderData}
-          className="first:mt-23 lg:first:mt-28"
-        />
-      ))}
+      <JobCardList
+        jobs={jobs}
+        isLoading={isPlaceholderData}
+        className="first:mt-23 lg:first:mt-28"
+      />
       <JobPagination count={pagination.total} pageSize={pagination.pageSize} />
     </AppContainer>
   );
