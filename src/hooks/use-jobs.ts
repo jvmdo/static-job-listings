@@ -1,4 +1,5 @@
-import { buildUrlParams, searchParams } from "@/hooks/use-filters";
+import { buildUrlParams, searchParams, useFilters } from "@/hooks/use-filters";
+import { usePage } from "@/hooks/use-page";
 import { QueryErrCodes } from "@/lib/query-errors";
 import { JobsResponseSchema } from "@/mocks/db";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -16,13 +17,12 @@ export type JobFilters = HasSameKeysAs<
 >;
 
 interface UseJobsParams {
-  queryKey: [JobFilters, number];
-  onError: (previousFilters: JobFilters, previousPage: number) => void;
   onRetry: () => void;
 }
 
-export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
-  const [filters, page] = queryKey;
+export function useJobs({ onRetry }: UseJobsParams) {
+  const [page, setPage] = usePage();
+  const { filters, setFilters } = useFilters();
   const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
 
   const query = useQuery({
@@ -53,7 +53,8 @@ export function useJobs({ queryKey, onError, onRetry }: UseJobsParams) {
   const setPreviousData = useEffectEvent(() => {
     const previousQueryKey = query.error ? query.error.message : "[]";
     const [, previousFilters, previousPage] = JSON.parse(previousQueryKey);
-    onError(previousFilters, previousPage);
+    setPage(previousPage);
+    setFilters(previousFilters);
   });
 
   useEffect(() => {

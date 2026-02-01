@@ -1,6 +1,7 @@
-import { useFilters, type FilterCategories } from "@/hooks/use-filters";
-import type { Job } from "@/hooks/use-jobs";
+import type { Job } from "@/mocks/db";
 import { type ComponentProps } from "react";
+
+import { useFilters, type FilterCategories } from "@/hooks/use-filters";
 import { twMerge } from "tailwind-merge";
 
 type JobCardProps = {
