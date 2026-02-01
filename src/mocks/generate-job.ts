@@ -1,5 +1,3 @@
-import fs from "fs";
-
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
 
@@ -100,7 +98,7 @@ const COMPANIES = [
   },
 ];
 
-function generateJob() {
+export default function generateJob() {
   const postedDate = faker.date.recent({ days: 30 });
   const hoursAgo = Math.floor(
     (Date.now() - postedDate.getTime()) / (1000 * 60 * 60),
@@ -147,11 +145,3 @@ function generateJob() {
     tools,
   };
 }
-
-const jobs = Array.from({ length: 215 }, () => generateJob());
-
-jobs.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
-
-fs.writeFileSync("./src/mocks/data.json", JSON.stringify(jobs, null, 2));
-
-console.log(`✅ Generated ${jobs.length} jobs`);
