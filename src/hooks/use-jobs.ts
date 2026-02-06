@@ -1,10 +1,10 @@
 import { buildUrlParams, searchParams, useFilters } from "@/hooks/use-filters";
 import { usePage } from "@/hooks/use-page";
 import { QueryErrCodes } from "@/lib/query-errors";
-import { JobsResponseSchema } from "@/mocks/db";
+import { JobsResponseSchema, type JobsResponse } from "@/mocks/db";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
-import { useEffect, useEffectEvent } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 export type JobFilters = HasSameKeysAs<
   typeof searchParams,
@@ -24,6 +24,7 @@ export function useJobs({ onRetry }: UseJobsParams) {
   const [page, setPage] = usePage();
   const { filters, setFilters } = useFilters();
   const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
+  const [lastSuccessfulData, setLastSuccessfulData] = useState<JobsResponse>();
 
   const query = useQuery({
     queryKey: ["jobs", filters, page],
@@ -36,7 +37,7 @@ export function useJobs({ onRetry }: UseJobsParams) {
       const response = await fetch(jobsEndpoint, { signal });
 
       if (!response.ok) {
-        throw new Error(previousQueryKey ?? "[]");
+        throw new Error("[queryFn] says: ");
       }
 
       const data = await response.json();
@@ -45,33 +46,45 @@ export function useJobs({ onRetry }: UseJobsParams) {
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     placeholderData: keepPreviousData,
+    retry: false,
     meta: {
       errCode: QueryErrCodes.JOBS_FETCH_FAILED,
     },
   });
 
-  const setPreviousData = useEffectEvent(() => {
-    const previousQueryKey = query.error ? query.error.message : "[]";
-    const [, previousFilters, previousPage] = JSON.parse(previousQueryKey);
+  const previousData = usePrevious(query.data);
+
+  const rollbackQuery = useEffectEvent(() => {
+    const [, previousFilters, previousPage] = JSON.parse(
+      previousQueryKey ?? "[]",
+    );
     setPage(previousPage);
     setFilters(previousFilters);
+
+    if (previousData) {
+      setLastSuccessfulData(previousData);
+    }
   });
 
   useEffect(() => {
     if (query.isError) {
-      setPreviousData();
+      rollbackQuery();
     }
   }, [query.isError]);
 
-  const hasRetry = query.failureCount > 1;
-
   useEffect(() => {
-    if (hasRetry) {
+    if (query.failureCount > 1) {
       onRetry();
     }
-  }, [hasRetry, onRetry]);
+  }, [query.failureCount, onRetry]);
 
-  return query;
+  const data = query.isError
+    ? previousData
+      ? previousData
+      : lastSuccessfulData
+    : query.data;
+
+  return { ...query, data };
 }
 
 /* 

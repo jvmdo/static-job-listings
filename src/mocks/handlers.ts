@@ -4,7 +4,7 @@ import db from "./db";
 export const handlers = [
   http.get("/jobs", async ({ request }) => {
     await delay();
-    const shouldFail = Math.random() < 0.1; // 10% error rate
+    const shouldFail = Math.random() < 0.5; // 10% error rate
 
     if (shouldFail) {
       return new HttpResponse(null, { status: 500 });
