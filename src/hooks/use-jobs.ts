@@ -1,10 +1,10 @@
 import { buildUrlParams, searchParams, useFilters } from "@/hooks/use-filters";
 import { usePage } from "@/hooks/use-page";
 import { QueryErrCodes } from "@/lib/query-errors";
-import { JobsResponseSchema, type JobsResponse } from "@/mocks/db";
+import { JobsResponseSchema } from "@/mocks/db";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 
 export type JobFilters = HasSameKeysAs<
   typeof searchParams,
@@ -24,7 +24,6 @@ export function useJobs({ onRetry }: UseJobsParams) {
   const [page, setPage] = usePage();
   const { filters, setFilters } = useFilters();
   const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
-  const [lastSuccessfulData, setLastSuccessfulData] = useState<JobsResponse>();
 
   const query = useQuery({
     queryKey: ["jobs", filters, page],
@@ -52,18 +51,12 @@ export function useJobs({ onRetry }: UseJobsParams) {
     },
   });
 
-  const previousData = usePrevious(query.data);
-
   const rollbackQuery = useEffectEvent(() => {
     const [, previousFilters, previousPage] = JSON.parse(
       previousQueryKey ?? "[]",
     );
     setPage(previousPage);
     setFilters(previousFilters);
-
-    if (previousData) {
-      setLastSuccessfulData(previousData);
-    }
   });
 
   useEffect(() => {
@@ -78,13 +71,24 @@ export function useJobs({ onRetry }: UseJobsParams) {
     }
   }, [query.failureCount, onRetry]);
 
-  const data = query.isError
-    ? previousData
-      ? previousData
-      : lastSuccessfulData
-    : query.data;
+  const data = useLastSuccessfulData(query.data, query.isSuccess);
 
   return { ...query, data };
+}
+
+/* 
+  e-hooks-dot-com.ts
+*/
+function useLastSuccessfulData<T>(data: T | undefined, isSuccess: boolean) {
+  const ref = useRef<T>(undefined);
+
+  useEffect(() => {
+    if (isSuccess) {
+      ref.current = data;
+    }
+  }, [isSuccess, data]);
+
+  return ref.current ?? data;
 }
 
 /* 
