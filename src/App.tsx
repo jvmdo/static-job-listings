@@ -10,7 +10,7 @@ import { useJobs } from "@/hooks/use-jobs";
 import { toast } from "sonner";
 
 function App() {
-  const { data, isPending, isPlaceholderData, isError } = useJobs({
+  const { data, isPending, isPlaceholderData } = useJobs({
     onRetry: () => {
       toast.warning("Error while fetching jobs", {
         id: "retry",
@@ -19,14 +19,13 @@ function App() {
     },
   });
 
-  if (isError) {
-    console.error("blink blink");
-    //* It flashes whenever [isError] is true after first successful mount
-    return <ErrorFallback />;
-  }
-
   if (isPending) {
     return <SkeletonJobCardList />;
+  }
+
+  if (!data) {
+    console.error("blink blink");
+    return <ErrorFallback />;
   }
 
   const { jobs, pagination } = data;

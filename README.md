@@ -11,10 +11,12 @@ This is a solution to the [Job listings with filtering challenge on Frontend Men
 - [My process](#my-process)
   - [Step-by-step](#step-by-step)
   - [Built with](#built-with)
+  - [Pain points](#pain-points)
   - [What I learned](#what-i-learned)
   - [Remaining questions](#remaining-questions)
   - [Continued development](#continued-development)
   - [Useful resources](#useful-resources)
+- [Known bugs](#known-bugs)
 
 ## Overview
 
@@ -49,9 +51,9 @@ For this challenge, I added tons of extra features:
 
 ## My process
 
-Time estimation: 10h | Actual time: 40h
+Time estimation: 10h | Actual time: 50h
 
-I finished the proposed challenge in about 10h. The other 30hs I spent in cool extra features 🤓
+> I finished the proposed challenge in about 10h. The other 40hs I spent in cool extra features and refactoring 🤓
 
 ### Step by step
 
@@ -95,7 +97,7 @@ I finished the proposed challenge in about 10h. The other 30hs I spent in cool e
 
 9. More refactoring and refinings (+6h)
 
-10. Animation [NOT GOING]
+10. Animations
     - Enter and exit animation for filter bar
     - jobs list height / snap scroll
 
@@ -108,6 +110,14 @@ I finished the proposed challenge in about 10h. The other 30hs I spent in cool e
 - Ark UI
 - tailwindcss
 - faker.js
+
+### Pain points
+
+The struggle was implementing rollback logic that displays the last successful data instead of an error screen when a query fails. The difficulty came from synchronizing nuqs (URL params) with Tanstack Query (data state).
+
+When an error occurs, `isError` becomes `true` and `data` becomes `undefined` immediately. However, rolling back the URL params via nuqs setters only takes effect on the *next render*. This creates a *timing gap*: the error render has no data to display.
+
+The solution: get the previous successful data directly from cache using the previous URL params, ensuring the error render always has data to show while the rollback executes.
 
 ### What I learned
 
@@ -164,6 +174,8 @@ I finished the proposed challenge in about 10h. The other 30hs I spent in cool e
 
 - Query filters are used to... well, filter queries by keys! So, if you pass only the topmost key, say `queryClient.refetchQueries(['jobs'])`, all entries will be refetched! This is the default behavior. It's possible to apply some configuration.
 
+- `usePrevious` + `queryClient.getQueryData` to retrieve previous query data from cache.
+
 #### Remaining questions
 
 - Just... WHY?
@@ -194,6 +206,19 @@ I finished the proposed challenge in about 10h. The other 30hs I spent in cool e
 
 - [Shrink to fit open issue](https://github.com/w3c/csswg-drafts/issues/191) - This helped me realize IT IS NOT POSSIBLE to make a flex container with `flex-wrap: wrap` shrink to fit its width using CSS only.
 
-- [Breaking React Query's API on purpose](httpshttps://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
+- [Breaking React Query's API on purpose](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
 
 - [How to run logic onError in `QueryCache`](https://stackoverflow.com/a/76961109/21858786)
+
+## Known bugs
+
+- Previous page landing
+  - **What is**: list goes back to the previous page if the current `page` fails after *rapid pagination*
+  - **How it happens**: a jump button is clicked several times per second. If the selected page fails to load, the previous page will be loaded. Maybe it's recursive until success
+  - **Why it happens**: because of the rollback logic
+  - **Expected behavior**: retry the failed page load
+  - **Impact**: user loses their intended navigation target and may not notice they're on the wrong page
+  - **Frequency**: rare
+  - **Severity**: low
+  - **Reproduction steps**: rapid paginates from page 1 to 5. If page 5 fails to load its content, list goes back to Page 4 (previous page in the sequence)
+  - **Possible solution**: don't perform pages rollback, only filters
