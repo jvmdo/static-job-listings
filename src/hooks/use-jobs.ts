@@ -1,10 +1,14 @@
 import { buildUrlParams, searchParams, useFilters } from "@/hooks/use-filters";
 import { usePage } from "@/hooks/use-page";
 import { QueryErrCodes } from "@/lib/query-errors";
-import { JobsResponseSchema } from "@/mocks/db";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { JobsResponseSchema, type JobsResponse } from "@/mocks/db";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { usePrevious } from "@uidotdev/usehooks";
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 export type JobFilters = HasSameKeysAs<
   typeof searchParams,
@@ -21,9 +25,8 @@ interface UseJobsParams {
 }
 
 export function useJobs({ onRetry }: UseJobsParams) {
-  const [page, setPage] = usePage();
-  const { filters, setFilters } = useFilters();
-  const previousQueryKey = usePrevious(JSON.stringify(["jobs", filters, page]));
+  const [page] = usePage();
+  const { filters } = useFilters();
 
   const query = useQuery({
     queryKey: ["jobs", filters, page],
@@ -36,7 +39,7 @@ export function useJobs({ onRetry }: UseJobsParams) {
       const response = await fetch(jobsEndpoint, { signal });
 
       if (!response.ok) {
-        throw new Error("[queryFn] says: ");
+        throw new Error("[queryFn] says: what's wrong with this?");
       }
 
       const data = await response.json();
@@ -51,44 +54,55 @@ export function useJobs({ onRetry }: UseJobsParams) {
     },
   });
 
-  const rollbackQuery = useEffectEvent(() => {
-    const [, previousFilters, previousPage] = JSON.parse(
-      previousQueryKey ?? "[]",
-    );
-    setPage(previousPage);
-    setFilters(previousFilters);
-  });
-
-  useEffect(() => {
-    if (query.isError) {
-      rollbackQuery();
-    }
-  }, [query.isError]);
-
   useEffect(() => {
     if (query.failureCount > 1) {
       onRetry();
     }
   }, [query.failureCount, onRetry]);
 
-  const data = useLastSuccessfulData(query.data, query.isSuccess);
+  // * `useJobs` will work regardless whether this logic is applied or not
+  // * However, the error screen will take place whenever an error occurs
+  const data = useJobsWithRollback(query.data, query.isError);
 
   return { ...query, data };
 }
 
-/* 
-  e-hooks-dot-com.ts
-*/
-function useLastSuccessfulData<T>(data: T | undefined, isSuccess: boolean) {
-  const ref = useRef<T>(undefined);
+/**
+ * Enhances useJobs result with automatic error recovery.
+ *
+ * When a query error occurs:
+ * 1. Rolls back URL params (page/filters) to their previous values
+ * 2. Returns the last successful data from cache instead of `undefined`
+ *
+ * This provides seamless fallback to the last known good state
+ * while preventing error screen flicker for renders whose `isError` is `true`.
+ */
+function useJobsWithRollback(data: JobsResponse | undefined, isError: boolean) {
+  const [page, setPage] = usePage();
+  const { filters, setFilters } = useFilters();
+  const queryClient = useQueryClient();
+
+  const previousPage = usePrevious(page);
+  const previousFilters = usePrevious(filters);
+
+  const rollbackQueryState = useEffectEvent(() => {
+    setPage(previousPage);
+    setFilters(previousFilters);
+  });
 
   useEffect(() => {
-    if (isSuccess) {
-      ref.current = data;
+    if (isError) {
+      rollbackQueryState();
     }
-  }, [isSuccess, data]);
+  }, [isError]);
 
-  return ref.current ?? data;
+  const lastSuccessfulJobs = queryClient.getQueryData<JobsResponse>([
+    "jobs",
+    previousFilters,
+    previousPage,
+  ]);
+
+  return isError ? lastSuccessfulJobs : data;
 }
 
 /* 
